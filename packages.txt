@@ -32,3 +32,4 @@ kwin-bismuth-bin
 pdf-xchange
 timeshift-autosnap
 broadcom-wl
+microsoft-edge-stable
