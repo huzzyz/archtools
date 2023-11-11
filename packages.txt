@@ -31,3 +31,4 @@ oh-my-zsh-git
 kwin-bismuth-bin
 pdf-xchange
 timeshift-autosnap
+broadcom-wl
