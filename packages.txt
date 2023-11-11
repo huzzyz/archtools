@@ -33,3 +33,6 @@ pdf-xchange
 timeshift-autosnap
 broadcom-wl
 microsoft-edge-stable
+dolphin
+kate
+dolphin-plugins
