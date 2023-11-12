@@ -13,6 +13,19 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 
+# Check for AMD GPU
+if lspci | grep -E "VGA|3D" | grep -qi AMD; then
+    print_message $YELLOW "An AMD GPU has been detected."
+    read -p "Please confirm if you want to install AMD-specific packages (y/n): " confirm_amd
+    if [[ $confirm_amd != [Yy]* ]]; then
+        # Exclude corectrl-git from installation if user does not confirm
+        sed -i '/corectrl-git/d' packages.txt
+    fi
+else
+    # Exclude corectrl-git as no AMD GPU is detected
+    sed -i '/corectrl-git/d' packages.txt
+fi
+
 # Install yay if it's not installed
 if ! command -v yay &> /dev/null; then
     print_message $YELLOW "Installing yay..."
@@ -54,7 +67,7 @@ print_message $GREEN "Arch/AUR packages installed successfully."
 print_message $YELLOW "Installing Flatpak packages from flatpak_packages.txt..."
 while IFS= read -r package || [[ -n "$package" ]]; do
     if ! flatpak list | grep -q $package; then
-        if ! flatpak install -y $package; then
+        if ! flatpak install --noconfirm -y $package; then
             print_message $RED "Error: Failed to install Flatpak package: $package"
             exit 1
         fi
