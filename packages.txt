@@ -36,3 +36,6 @@ microsoft-edge-stable
 dolphin
 kate
 dolphin-plugins
+ttf-wps-fonts
+wps-office
+libtiff5
