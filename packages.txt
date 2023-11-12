@@ -40,3 +40,4 @@ ttf-wps-fonts
 wps-office
 libtiff5
 gwenview
+latte-dock-git
