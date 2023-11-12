@@ -16,18 +16,23 @@ YELLOW='\033[1;33m'
 # Install yay if it's not installed
 if ! command -v yay &> /dev/null; then
     print_message $YELLOW "Installing yay..."
-    sudo pacman -Sy --needed git base-devel
+    sudo pacman -Sy --needed --noconfirm git base-devel
     git clone https://aur.archlinux.org/yay.git
     cd yay
-    makepkg -si
+    makepkg -si --noconfirm
     cd ..
     rm -rf yay
 fi
 
+# Configure yay to use powerpill
+print_message $YELLOW "Configuring yay to use powerpill..."
+yay -Syu --save --noconfirm
+sed -i 's|"pacmanbin": "pacman"|"pacmanbin": "powerpill"|' ~/.config/yay/config.json
+
 # Install powerpill for faster downloads if not installed
 if ! command -v powerpill &> /dev/null; then
     print_message $YELLOW "Installing powerpill..."
-    yay -S --needed powerpill
+    yay -S --needed --noconfirm powerpill
 fi
 
 # Install packages using yay
@@ -45,7 +50,7 @@ done < packages.txt
 
 print_message $GREEN "Arch/AUR packages installed successfully."
 
-# Install Flatpak packages
+# Install Flatpak packages with --noconfirm
 print_message $YELLOW "Installing Flatpak packages from flatpak_packages.txt..."
 while IFS= read -r package || [[ -n "$package" ]]; do
     if ! flatpak list | grep -q $package; then
