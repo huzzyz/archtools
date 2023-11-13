@@ -13,38 +13,40 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 
-install_yay_and_powerpill() {
-    # Install yay if it's not installed
-    if ! command -v yay &> /dev/null; then
+# Install yay
+install_yay() {
+    if command -v yay &> /dev/null; then
+        print_message $GREEN "yay is already installed."
+    else
         print_message $YELLOW "Installing yay..."
         sudo pacman -Sy --needed --noconfirm git base-devel
         git clone https://aur.archlinux.org/yay.git
         cd yay
         makepkg -si --noconfirm
-        cd ..
-        rm -rf yay
-        print_message $GREEN "yay installed successfully."
-    else
-        print_message $GREEN "yay is already installed."
-    fi
-
-    # Configure yay to use powerpill
-    print_message $YELLOW "Configuring yay to use powerpill..."
-    yay -Syu --save --noconfirm
-    sed -i 's|"pacmanbin": "pacman"|"pacmanbin": "powerpill"|' ~/.config/yay/config.json
-
-    # Install powerpill for faster downloads if not installed
-    if ! command -v powerpill &> /dev/null; then
-        print_message $YELLOW "Installing powerpill..."
-        yay -S --needed --noconfirm powerpill
-        print_message $GREEN "powerpill installed successfully."
-    else
-        print_message $GREEN "powerpill is already installed."
+        if [ $? -eq 0 ]; then
+            cd ..
+            rm -rf yay
+            print_message $GREEN "yay installed successfully."
+        else
+            print_message $RED "Failed to install yay."
+            exit 1
+        fi
     fi
 }
 
-install_packages() {
-    # Install packages using yay
+# Install powerpill using yay
+install_powerpill() {
+    print_message $YELLOW "Installing powerpill using yay..."
+    if yay -S --needed --noconfirm powerpill; then
+        print_message $GREEN "powerpill installed successfully."
+    else
+        print_message $RED "Failed to install powerpill."
+        exit 1
+    fi
+}
+
+# Install Arch/AUR packages
+install_arch_packages() {
     if [ -f "packages.txt" ]; then
         print_message $YELLOW "Installing Arch/AUR packages from packages.txt..."
         while IFS= read -r package || [[ -n "$package" ]]; do
@@ -64,8 +66,8 @@ install_packages() {
     fi
 }
 
+# Install Flatpak packages
 install_flatpak_packages() {
-    # Install Flatpak packages
     if [ -f "flatpak_packages.txt" ]; then
         print_message $YELLOW "Installing Flatpak packages from flatpak_packages.txt..."
         while IFS= read -r package || [[ -n "$package" ]]; do
@@ -85,7 +87,8 @@ install_flatpak_packages() {
     fi
 }
 
-# Main script starts here
-install_yay_and_powerpill
-install_packages
+# Main script execution
+install_yay
+install_powerpill
+install_arch_packages
 install_flatpak_packages
