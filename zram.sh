@@ -1,31 +1,24 @@
 #!/bin/bash
 
-# Check if run as root
-if [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root."
-    exit 1
-fi
-
-# Function to check and install necessary commands
-check_and_install() {
-    if ! command -v "$1" &> /dev/null; then
-        echo "Command not found: $1. Attempting to install..."
-        yay -S --noconfirm "$1"
-        if [ $? -ne 0 ]; then
-            echo "Failed to install $1. Exiting."
-            exit 1
+# Function to prompt for user input
+prompt_for_zram_size() {
+    read -p "Enter the ZRAM size in MB (Recommended: $1 MB, 0 to skip): " input_size
+    if [[ $input_size =~ ^[0-9]+$ ]]; then
+        if [ "$input_size" -eq 0 ]; then
+            echo "Skipping ZRAM setup as per user request."
+            exit 0
+        else
+            echo "$input_size"
         fi
+    else
+        echo "Invalid input. Using recommended size."
+        echo "$1"
     fi
 }
 
-# Check and install necessary commands
-for cmd in grep awk modprobe mkswap swapon; do
-    check_and_install "$cmd"
-done
-
-# Check if /proc/meminfo exists
-if [ ! -f /proc/meminfo ]; then
-    echo "/proc/meminfo not found. Are you running this on Linux?"
+# Check if run as root
+if [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root."
     exit 1
 fi
 
@@ -34,16 +27,16 @@ total_ram=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 total_ram_mb=$((total_ram / 1024))
 
 # Calculate recommended ZRAM size (using a 1:3 ratio)
-zram_size_mb=$((total_ram_mb * 3))
+recommended_zram_size_mb=$((total_ram_mb * 3))
+
+# Prompt user for ZRAM size
+zram_size_mb=$(prompt_for_zram_size "$recommended_zram_size_mb")
 
 # Check if zram module is loaded
 if ! lsmod | grep -q zram; then
     # Load zram module
     modprobe zram
 fi
-
-# Setting up ZRAM
-echo "Setting up ZRAM of size: $zram_size_mb MB..."
 
 # Set the number of ZRAM devices (1 in this case)
 echo 1 > /sys/class/zram-control/hot_add
@@ -59,7 +52,7 @@ mkswap /dev/zram0
 swapon /dev/zram0
 
 # Display ZRAM setup
-echo "ZRAM setup completed. Current status:"
+echo "ZRAM setup completed. Size: $zram_size_mb MB"
 swapon --show
 
 # Create a systemd service for persistence
