@@ -31,9 +31,10 @@ mount $btrfs_partition /mnt || exit 1
 print_message "Creating subvolumes..."
 btrfs subvolume create /mnt/@ || exit 1
 btrfs subvolume create /mnt/@home || exit 1
-btrfs subvolume create /mnt/@var || exit 1
-btrfs subvolume create /mnt/@tmp || exit 1
-btrfs subvolume create /mnt/@boot || exit 1
+btrfs subvolume create /mnt/@log || exit 1
+btrfs subvolume create /mnt/@cache || exit 1
+btrfs subvolume create /mnt/@snapshots || exit 1
+btrfs subvolume create /mnt/@libvirt-images || exit 1  # Subvolume for libvirt images
 
 # Unmount Btrfs partition
 print_message "Unmounting $btrfs_partition..."
@@ -42,15 +43,20 @@ umount /mnt
 # Mount subvolumes
 print_message "Mounting subvolumes..."
 mount -o noatime,compress=zstd,space_cache=v2,subvol=@ $btrfs_partition /mnt || exit 1
-mkdir -p /mnt/{home,var,tmp,.snapshots,boot}
+mkdir -p /mnt/{home,var/log,var/cache,.snapshots,efi,var/lib/libvirt/images}
 mount -o noatime,compress=zstd,space_cache=v2,subvol=@home $btrfs_partition /mnt/home || exit 1
-mount -o noatime,compress=zstd,space_cache=v2,subvol=@var $btrfs_partition /mnt/var || exit 1
-mount -o noatime,compress=zstd,space_cache=v2,subvol=@tmp $btrfs_partition /mnt/tmp || exit 1
-mount -o noatime,compress=zstd,space_cache=v2,subvol=@boot $btrfs_partition /mnt/boot || exit 1
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@log $btrfs_partition /mnt/var/log || exit 1
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@cache $btrfs_partition /mnt/var/cache || exit 1
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@snapshots $btrfs_partition /mnt/.snapshots || exit 1
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@libvirt-images $btrfs_partition /mnt/var/lib/libvirt/images || exit 1
 
 # Create and mount the EFI partition
 print_message "Creating mount point and mounting EFI partition $efi_partition..."
-mkdir -p /mnt/boot/efi
-mount $efi_partition /mnt/boot/efi || exit 1
+mkdir -p /mnt/efi
+mount $efi_partition /mnt/efi || exit 1
+
+# Display the layout of the created subvolumes
+print_message "Created Subvolumes Layout:"
+btrfs subvolume list /mnt
 
 print_message "Subvolumes and EFI partition mounted successfully."
