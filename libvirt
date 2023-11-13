@@ -19,13 +19,18 @@ if ! command -v yay &> /dev/null; then
     exit 1
 fi
 
-# Replace iptables with iptables-nft if iptables is installed
+# Check if iptables is installed and replace it with iptables-nft if it is
 if pacman -Qi iptables &> /dev/null; then
     print_message $YELLOW "Replacing iptables with iptables-nft..."
     sudo pacman -Rns --noconfirm iptables && \
     sudo pacman -S --needed --noconfirm iptables-nft && \
     print_message $GREEN "iptables replaced with iptables-nft successfully." || \
     { print_message $RED "Error replacing iptables."; exit 1; }
+else
+    print_message $YELLOW "iptables not found. Installing iptables-nft..."
+    sudo pacman -S --needed --noconfirm iptables-nft && \
+    print_message $GREEN "iptables-nft installed successfully." || \
+    { print_message $RED "Error installing iptables-nft."; exit 1; }
 fi
 
 # Install virtualization related packages
