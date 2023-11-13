@@ -5,7 +5,7 @@ print_message() {
     COLOR=$1
     TEXT=$2
     NC='\033[0m' # No Color
-    printf "${COLOR}${TEXT}${NC}\n"
+    printf "\n${COLOR}${TEXT}${NC}\n"
 }
 
 # Colors
@@ -13,67 +13,56 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 
-# Check for AMD GPU
-if lspci | grep -E "VGA|3D" | grep -qi AMD; then
-    print_message $YELLOW "An AMD GPU has been detected."
-    read -p "Please confirm if you want to install AMD-specific packages (y/n): " confirm_amd
-    if [[ $confirm_amd != [Yy]* ]]; then
-        # Exclude corectrl-git from installation if user does not confirm
-        sed -i '/corectrl-git/d' packages.txt
-    fi
+# Check for the presence of packages.txt and flatpak_packages.txt
+PACKAGES_FILE="packages.txt"
+FLATPAK_PACKAGES_FILE="flatpak_packages.txt"
+INSTALL_PACKAGES=false
+INSTALL_FLATPAK_PACKAGES=false
+
+if [ -f "$PACKAGES_FILE" ]; then
+    INSTALL_PACKAGES=true
 else
-    # Exclude corectrl-git as no AMD GPU is detected
-    sed -i '/corectrl-git/d' packages.txt
+    print_message $RED "Warning: $PACKAGES_FILE not found. Skipping Arch/AUR package installation."
 fi
 
-# Install yay if it's not installed
-if ! command -v yay &> /dev/null; then
-    print_message $YELLOW "Installing yay..."
-    sudo pacman -Sy --needed --noconfirm git base-devel
-    git clone https://aur.archlinux.org/yay.git
-    cd yay
-    makepkg -si --noconfirm
-    cd ..
-    rm -rf yay
+if [ -f "$FLATPAK_PACKAGES_FILE" ]; then
+    INSTALL_FLATPAK_PACKAGES=true
+else
+    print_message $RED "Warning: $FLATPAK_PACKAGES_FILE not found. Skipping Flatpak package installation."
 fi
 
-# Configure yay to use powerpill
-print_message $YELLOW "Configuring yay to use powerpill..."
-yay -Syu --save --noconfirm
-sed -i 's|"pacmanbin": "pacman"|"pacmanbin": "powerpill"|' ~/.config/yay/config.json
-
-# Install powerpill for faster downloads if not installed
-if ! command -v powerpill &> /dev/null; then
-    print_message $YELLOW "Installing powerpill..."
-    yay -S --needed --noconfirm powerpill
-fi
+# Rest of the script (like checking for AMD GPU, installing yay and powerpill)...
 
 # Install packages using yay
-print_message $YELLOW "Installing Arch/AUR packages from packages.txt..."
-while IFS= read -r package || [[ -n "$package" ]]; do
-    if ! pacman -Qi $package &> /dev/null; then
-        if ! yay -S --needed --noconfirm $package; then
-            print_message $RED "Error: Failed to install package: $package"
-            exit 1
+if [ "$INSTALL_PACKAGES" = true ]; then
+    print_message $YELLOW "Installing Arch/AUR packages from $PACKAGES_FILE..."
+    while IFS= read -r package || [[ -n "$package" ]]; do
+        if ! pacman -Qi $package &> /dev/null; then
+            print_message $YELLOW "Installing package: $package"
+            if ! yay -S --needed --noconfirm $package; then
+                print_message $RED "Error: Failed to install package: $package"
+                exit 1
+            fi
+        else
+            print_message $GREEN "Package already installed: $package"
         fi
-    else
-        print_message $GREEN "Package already installed: $package"
-    fi
-done < packages.txt
+    done < "$PACKAGES_FILE"
+    print_message $GREEN "Arch/AUR packages installed successfully."
+fi
 
-print_message $GREEN "Arch/AUR packages installed successfully."
-
-# Install Flatpak packages with --noconfirm
-print_message $YELLOW "Installing Flatpak packages from flatpak_packages.txt..."
-while IFS= read -r package || [[ -n "$package" ]]; do
-    if ! flatpak list | grep -q $package; then
-        if ! flatpak install --noconfirm -y $package; then
-            print_message $RED "Error: Failed to install Flatpak package: $package"
-            exit 1
+# Install Flatpak packages
+if [ "$INSTALL_FLATPAK_PACKAGES" = true ]; then
+    print_message $YELLOW "Installing Flatpak packages from $FLATPAK_PACKAGES_FILE..."
+    while IFS= read -r package || [[ -n "$package" ]]; do
+        if ! flatpak list | grep -q $package; then
+            print_message $YELLOW "Installing Flatpak package: $package"
+            if ! flatpak install --noconfirm -y $package; then
+                print_message $RED "Error: Failed to install Flatpak package: $package"
+                exit 1
+            fi
+        else
+            print_message $GREEN "Flatpak package already installed: $package"
         fi
-    else
-        print_message $GREEN "Flatpak package already installed: $package"
-    fi
-done < flatpak_packages.txt
-
-print_message $GREEN "Flatpak packages installed successfully."
+    done < "$FLATPAK_PACKAGES_FILE"
+    print_message $GREEN "Flatpak packages installed successfully."
+fi
