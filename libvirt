@@ -13,13 +13,16 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 
+# Required packages
+required_packages=("virt-manager" "qemu-desktop" "libvirt" "edk2-ovmf" "dnsmasq" "iptables-nft")
+
 # Check if yay is installed
 if ! command -v yay &> /dev/null; then
     print_message $RED "Error: yay is not installed. Please install yay first."
     exit 1
 fi
 
-# Check if iptables is installed and replace it with iptables-nft if it is
+# Check and replace iptables with iptables-nft
 if pacman -Qi iptables &> /dev/null; then
     print_message $YELLOW "Replacing iptables with iptables-nft..."
     sudo pacman -Rns --noconfirm iptables && \
@@ -27,20 +30,24 @@ if pacman -Qi iptables &> /dev/null; then
     print_message $GREEN "iptables replaced with iptables-nft successfully." || \
     { print_message $RED "Error replacing iptables."; exit 1; }
 else
-    print_message $YELLOW "iptables not found. Installing iptables-nft..."
+    print_message $YELLOW "iptables is not installed. Proceeding with iptables-nft installation..."
     sudo pacman -S --needed --noconfirm iptables-nft && \
     print_message $GREEN "iptables-nft installed successfully." || \
     { print_message $RED "Error installing iptables-nft."; exit 1; }
 fi
 
 # Install virtualization related packages
-print_message $YELLOW "Installing virtualization related packages..."
-if yay -Syyu --needed --noconfirm virt-manager qemu-desktop libvirt edk2-ovmf dnsmasq iptables-nft; then
-    print_message $GREEN "Virtualization packages installed successfully."
-else
-    print_message $RED "Error installing virtualization packages."
-    exit 1
-fi
+for pkg in "${required_packages[@]}"; do
+    if ! pacman -Qi $pkg &> /dev/null; then
+        print_message $YELLOW "Installing $pkg..."
+        if ! yay -S --needed --noconfirm $pkg; then
+            print_message $RED "Error installing $pkg."
+            exit 1
+        fi
+    else
+        print_message $GREEN "$pkg is already installed. Skipping..."
+    fi
+done
 
 # Configure libvirt and qemu
 print_message $YELLOW "Configuring libvirt and qemu..."
