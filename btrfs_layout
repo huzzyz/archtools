@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Function to display messages
+print_message() {
+    echo -e "\033[1;32m$1\033[0m" # Green color
+}
+
+# Display current disk layout
+print_message "Current Disk Layout:"
+lsblk
+
+# Get the Btrfs partition from the user
+read -p "Enter the Btrfs partition for subvolumes (e.g., /dev/nvme0n1p2): " btrfs_partition
+if [ ! -b "$btrfs_partition" ]; then
+    echo "Invalid partition: $btrfs_partition"
+    exit 1
+fi
+
+# Get the EFI partition from the user
+read -p "Enter the EFI partition (e.g., /dev/nvme0n1p1): " efi_partition
+if [ ! -b "$efi_partition" ]; then
+    echo "Invalid partition: $efi_partition"
+    exit 1
+fi
+
+# Mount Btrfs partition temporarily
+print_message "Mounting $btrfs_partition temporarily..."
+mount $btrfs_partition /mnt || exit 1
+
+# Create subvolumes
+print_message "Creating subvolumes..."
+btrfs subvolume create /mnt/@ || exit 1
+btrfs subvolume create /mnt/@home || exit 1
+btrfs subvolume create /mnt/@var || exit 1
+btrfs subvolume create /mnt/@tmp || exit 1
+btrfs subvolume create /mnt/@boot || exit 1
+
+# Unmount Btrfs partition
+print_message "Unmounting $btrfs_partition..."
+umount /mnt
+
+# Mount subvolumes
+print_message "Mounting subvolumes..."
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@ $btrfs_partition /mnt || exit 1
+mkdir -p /mnt/{home,var,tmp,.snapshots,boot}
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@home $btrfs_partition /mnt/home || exit 1
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@var $btrfs_partition /mnt/var || exit 1
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@tmp $btrfs_partition /mnt/tmp || exit 1
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@boot $btrfs_partition /mnt/boot || exit 1
+
+# Create and mount the EFI partition
+print_message "Creating mount point and mounting EFI partition $efi_partition..."
+mkdir -p /mnt/boot/efi
+mount $efi_partition /mnt/boot/efi || exit 1
+
+print_message "Subvolumes and EFI partition mounted successfully."
