@@ -6,12 +6,21 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Check for necessary commands
-for cmd in grep awk modprobe mkswap swapon; do
-    if ! command -v "$cmd" &> /dev/null; then
-        echo "Command not found: $cmd. Please install it."
-        exit 1
+# Function to check and install necessary commands
+check_and_install() {
+    if ! command -v "$1" &> /dev/null; then
+        echo "Command not found: $1. Attempting to install..."
+        yay -S --noconfirm "$1"
+        if [ $? -ne 0 ]; then
+            echo "Failed to install $1. Exiting."
+            exit 1
+        fi
     fi
+}
+
+# Check and install necessary commands
+for cmd in grep awk modprobe mkswap swapon; do
+    check_and_install "$cmd"
 done
 
 # Check if /proc/meminfo exists
