@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Function to display messages in color
+# Function to display messages in color and with proper formatting
 print_message() {
     COLOR=$1
     TEXT=$2
     NC='\033[0m' # No Color
-    printf "${COLOR}${TEXT}${NC}\n"
+    printf "\n${COLOR}${TEXT}${NC}\n"
 }
 
 # Colors
@@ -16,31 +16,24 @@ YELLOW='\033[1;33m'
 # Required packages
 required_packages=("virt-manager" "qemu-desktop" "libvirt" "edk2-ovmf" "dnsmasq" "iptables-nft")
 
+print_message $YELLOW "Starting Virtualization Environment Setup..."
+
 # Check if yay is installed
 if ! command -v yay &> /dev/null; then
     print_message $RED "Error: yay is not installed. Please install yay first."
     exit 1
-fi
-
-# Check and replace iptables with iptables-nft
-if pacman -Qi iptables &> /dev/null; then
-    print_message $YELLOW "Replacing iptables with iptables-nft..."
-    sudo pacman -Rns --noconfirm iptables && \
-    sudo pacman -S --needed --noconfirm iptables-nft && \
-    print_message $GREEN "iptables replaced with iptables-nft successfully." || \
-    { print_message $RED "Error replacing iptables."; exit 1; }
 else
-    print_message $YELLOW "iptables is not installed. Proceeding with iptables-nft installation..."
-    sudo pacman -S --needed --noconfirm iptables-nft && \
-    print_message $GREEN "iptables-nft installed successfully." || \
-    { print_message $RED "Error installing iptables-nft."; exit 1; }
+    print_message $GREEN "Confirmed: yay is installed."
 fi
 
 # Install virtualization related packages
+print_message $YELLOW "Checking and installing virtualization related packages..."
 for pkg in "${required_packages[@]}"; do
     if ! pacman -Qi $pkg &> /dev/null; then
         print_message $YELLOW "Installing $pkg..."
-        if ! yay -S --needed --noconfirm $pkg; then
+        if yay -S --needed --noconfirm $pkg; then
+            print_message $GREEN "$pkg installed successfully."
+        else
             print_message $RED "Error installing $pkg."
             exit 1
         fi
@@ -56,34 +49,45 @@ print_message $YELLOW "Configuring libvirt and qemu..."
 {
     echo "unix_sock_rw_perms = \"0770\""
     echo "unix_sock_group = \"libvirt\""
-} | sudo tee -a /etc/libvirt/libvirtd.conf &>/dev/null
+} | sudo tee -a /etc/libvirt/libvirtd.conf &>/dev/null && \
+print_message $GREEN "libvirt configuration updated." || \
+{ print_message $RED "Error updating libvirt configuration."; exit 1; }
 
 # Create the libvirt configuration directory and set default URI
-mkdir -p ~/.config/libvirt/ && \
-echo 'uri_default = "qemu:///system"' >> ~/.config/libvirt/libvirt.conf
+if mkdir -p ~/.config/libvirt/ && echo 'uri_default = "qemu:///system"' >> ~/.config/libvirt/libvirt.conf; then
+    print_message $GREEN "libvirt user configuration set."
+else
+    print_message $RED "Error setting libvirt user configuration."
+    exit 1
+fi
 
 # Add the current user to the libvirt group
-newgrp libvirt
-sudo usermod -aG libvirt $USER
+if newgrp libvirt && sudo usermod -aG libvirt $USER; then
+    print_message $GREEN "Current user added to libvirt group."
+else
+    print_message $RED "Error adding current user to libvirt group."
+    exit 1
+fi
 
 # Set the user and group in qemu.conf to the current user and group
 USER_GROUP=$(id -gn $USER)
-sudo sed -i "/^#user/c\user = \"$USER\"" /etc/libvirt/qemu.conf && \
-sudo sed -i "/^#group/c\group = \"$USER_GROUP\"" /etc/libvirt/qemu.conf && \
-print_message $GREEN "libvirt and qemu configured successfully." || \
-{ print_message $RED "Error configuring libvirt and qemu."; exit 1; }
+if sudo sed -i "/^#user/c\user = \"$USER\"" /etc/libvirt/qemu.conf && \
+   sudo sed -i "/^#group/c\group = \"$USER_GROUP\"" /etc/libvirt/qemu.conf; then
+    print_message $GREEN "QEMU configuration updated for user $USER."
+else
+    print_message $RED "Error updating QEMU configuration."
+    exit 1
+fi
 
 # Enable and restart the libvirtd service
-print_message $YELLOW "Enabling and restarting libvirtd service..."
 if sudo systemctl enable libvirtd.service && sudo systemctl restart libvirtd.service; then
-    print_message $GREEN "libvirtd service enabled and restarted successfully."
+    print_message $GREEN "libvirtd service enabled and restarted."
 else
     print_message $RED "Error managing libvirtd service."
     exit 1
 fi
 
 # Start the default virtual network
-print_message $YELLOW "Starting the default virtual network..."
 if sudo virsh net-start default; then
     print_message $GREEN "Default virtual network started successfully."
 else
