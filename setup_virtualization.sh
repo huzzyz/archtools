@@ -62,7 +62,7 @@ else
 fi
 
 # Add the current user to the libvirt group
-if newgrp libvirt && sudo usermod -aG libvirt $USER; then
+if sudo usermod -aG libvirt $USER; then
     print_message $GREEN "Current user added to libvirt group."
 else
     print_message $RED "Error adding current user to libvirt group."
@@ -87,11 +87,45 @@ else
     exit 1
 fi
 
+# Check and start the default network
+if sudo virsh net-list --all | grep -q 'default'; then
+    print_message $GREEN "Default network already defined."
+else
+    print_message $YELLOW "Defining and starting the default network..."
+    # Define the default network
+    sudo virsh net-define /etc/libvirt/qemu/networks/default.xml
+fi
+
 # Start the default virtual network
 if sudo virsh net-start default; then
     print_message $GREEN "Default virtual network started successfully."
 else
     print_message $RED "Error starting the default virtual network."
+    exit 1
+fi
+
+# Enable default network autostart
+if sudo virsh net-autostart default; then
+    print_message $GREEN "Default virtual network set to autostart."
+else
+    print_message $RED "Error setting default network to autostart."
+    exit 1
+fi
+
+# Create a polkit rule for passwordless virt-manager access
+POLKIT_RULE='/etc/polkit-1/rules.d/80-virt-manager.rules'
+if sudo tee $POLKIT_RULE > /dev/null <<'EOF'
+polkit.addRule(function(action, subject) {
+    if (action.id.indexOf("org.libvirt") == 0 &&
+        subject.isInGroup("libvirt")) {
+        return polkit.Result.YES;
+    }
+});
+EOF
+then
+    print_message $GREEN "Polkit rule for virt-manager created successfully."
+else
+    print_message $RED "Error creating polkit rule for virt-manager."
     exit 1
 fi
 
