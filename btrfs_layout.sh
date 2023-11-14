@@ -27,7 +27,7 @@ generate_fstab_entry() {
     echo "UUID=$uuid $mount_point btrfs $options 0 0"
 }
 
-print_message "WARNING: This script assumes you have created the partitions and formatted them on your own will create btrfs layout and may lead to data loss."
+print_message "WARNING: This script assumes you have created the partitions and formatted them on your own. This script will only create a btrfs layout and may lead to data loss."
 echo "Please ensure you have backups before proceeding."
 read -p "Press Enter to continue or Ctrl+C to abort."
 
