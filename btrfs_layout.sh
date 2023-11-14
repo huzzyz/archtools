@@ -1,11 +1,10 @@
 #!/bin/bash
-
 # Function to display messages in color
 print_message() {
     echo -e "\033[1;32m$1\033[0m" # Green color for messages
 }
 
-# Function to validate the partition or disk
+# Function to validate the partition
 validate_device() {
     local device=$1
     while true; do
@@ -19,57 +18,26 @@ validate_device() {
     echo "$device"  # Return the valid device name
 }
 
-print_message "WARNING: This script can modify disk partitions and may lead to data loss."
+print_message "WARNING: This script will format partitions and may lead to data loss."
 echo "Please ensure you have backups before proceeding."
 read -p "Press Enter to continue or Ctrl+C to abort."
 
 print_message "Current Disk Layout:"
 lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
 
-# Partition deletion (optional)
-read -p "Do you want to delete any partitions? (yes/no): " delete_partitions
-if [ "$delete_partitions" == "yes" ]; then
-    echo "Enter the partition you want to delete (e.g., /dev/sda1):"
-    read -r partition
-    partition=$(validate_device "$partition")
-    echo "Deleting partition $partition..."
-    (
-    echo d # Delete a partition
-    echo w # Write changes
-    ) | fdisk "$(echo $partition | sed -r 's/(.*[a-z]).*/\1/')"
-fi
-
-# Partition creation (optional)
-read -p "Do you want to create new partitions? (yes/no): " create_partitions
-if [ "$create_partitions" == "yes" ]; then
-    echo "Please enter the disk where you want to create partitions (e.g., /dev/sda):"
-    read -r disk
-    disk=$(validate_device "$disk")
-
-    echo "Creating partitions on $disk..."
-    (
-    echo n # Add a new partition (EFI)
-    echo   # Partition number 1
-    echo   # First sector (Accept default)
-    echo +512M # Size of EFI partition
-    echo n # Add a new partition (Btrfs)
-    echo   # Partition number 2
-    echo   # First sector (Accept default)
-    echo   # Last sector (Accept default, uses remaining space)
-    echo w # Write changes
-    ) | fdisk $disk
-fi
-
-# Format partitions
+# Ask for the EFI and Btrfs partitions
 echo "Please enter the EFI partition (e.g., /dev/sda1):"
 read -r efi_partition
 efi_partition=$(validate_device "$efi_partition")
-echo "Formatting the EFI partition ($efi_partition)..."
-mkfs.fat -F32 "$efi_partition"
 
 echo "Please enter the Btrfs partition (e.g., /dev/sda2):"
 read -r btrfs_partition
 btrfs_partition=$(validate_device "$btrfs_partition")
+
+# Format partitions
+echo "Formatting the EFI partition ($efi_partition)..."
+mkfs.fat -F32 "$efi_partition"
+
 echo "Formatting the Btrfs partition ($btrfs_partition)..."
 mkfs.btrfs "$btrfs_partition"
 
