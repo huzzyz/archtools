@@ -29,3 +29,4 @@ libtiff5
 gwenview
 latte-dock-git
 qtwebflix-git
+grub-btrfs
