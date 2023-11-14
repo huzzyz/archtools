@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Function to display messages in color
 print_message() {
     echo -e "\033[1;32m$1\033[0m" # Green color for messages
@@ -18,7 +19,15 @@ validate_device() {
     echo "$device"  # Return the valid device name
 }
 
-print_message "WARNING: This script will format partitions and may lead to data loss."
+# Function to generate fstab entries
+generate_fstab_entry() {
+    local uuid=$(blkid -s UUID -o value "$1")
+    local mount_point="$2"
+    local options="$3"
+    echo "UUID=$uuid $mount_point btrfs $options 0 0"
+}
+
+print_message "WARNING: This script assumes you have created the partitions and formatted them on your own will create btrfs layout and may lead to data loss."
 echo "Please ensure you have backups before proceeding."
 read -p "Press Enter to continue or Ctrl+C to abort."
 
@@ -55,18 +64,28 @@ umount /mnt
 # Mount subvolumes and EFI partition
 print_message "Mounting subvolumes and EFI partition..."
 mount -o subvol=@,defaults,noatime,compress=zstd "$btrfs_partition" /mnt
-mkdir -p /mnt/{boot/efi,home,var/log,var/cache,.snapshots,var/lib/libvirt/images}
+mkdir -p /mnt/{efi,home,var/log,var/cache,.snapshots,var/lib/libvirt/images}
 mount -o subvol=@home,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/home
 mount -o subvol=@log,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/log
 mount -o subvol=@cache,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/cache
 mount -o subvol=@snapshots,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/.snapshots
 mount -o subvol=@libvirt-images,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/lib/libvirt/images
-mount "$efi_partition" /mnt/boot/efi
+mount "$efi_partition" /mnt/efi
 
 # Display the created subvolumes
 print_message "Created Btrfs Subvolumes:"
 btrfs subvolume list /mnt
 
-print_message "Remember to update /etc/fstab with the new partitions and subvolumes."
+# Generate fstab entries
+print_message "Generated fstab Entries:"
+generate_fstab_entry "$btrfs_partition" "/" "subvol=@,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
+generate_fstab_entry "$btrfs_partition" "/home" "subvol=@home,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
+generate_fstab_entry "$btrfs_partition" "/var/log" "subvol=@log,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
+generate_fstab_entry "$btrfs_partition" "/var/cache" "subvol=@cache,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
+generate_fstab_entry "$btrfs_partition" "/.snapshots" "subvol=@snapshots,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
+generate_fstab_entry "$btrfs_partition" "/var/lib/libvirt/images" "subvol=@libvirt-images,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
+generate_fstab_entry "$efi_partition" "/efi" "vfat defaults,umask=0077"
+
+print_message "Remember to manually update /etc/fstab with the above entries."
 echo "Press Enter to exit."
 read
