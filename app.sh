@@ -64,7 +64,7 @@ install_flatpak_packages() {
         while IFS= read -r package || [[ -n "$package" ]]; do
             if ! flatpak list | grep -q $package; then
                 print_message $YELLOW "Installing Flatpak package: $package"
-                if ! flatpak install --noconfirm -y $package; then
+                if ! flatpak install -y $package; then
                     print_message $RED "Error: Failed to install Flatpak package: $package"
                     exit 1
                 fi
