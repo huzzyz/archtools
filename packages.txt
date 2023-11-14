@@ -1,7 +1,5 @@
 vlc
 flatpak
-sddm
-sddm-kcm
 pfetch
 neofetch
 fastfetch
@@ -30,3 +28,4 @@ wps-office
 libtiff5
 gwenview
 latte-dock-git
+qtwebflix-git
