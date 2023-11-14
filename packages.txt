@@ -31,3 +31,4 @@ latte-dock-git
 qtwebflix-git
 grub-btrfs
 kdeconnect
+sddm-kcm
