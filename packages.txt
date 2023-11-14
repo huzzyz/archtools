@@ -11,14 +11,9 @@ vdhcoapp-git
 libreoffice-fresh
 flameshot
 corectrl-git
-zsh-autocomplete-git
-zsh-syntax-highlighting-git
-zsh-autosuggestions-git
 kitty
 ttf-fira-code
 ttf-meslo-nerd-font-powerlevel10k
-zsh
-oh-my-zsh-git
 kwin-bismuth-bin
 pdf-xchange
 broadcom-wl
