@@ -78,8 +78,35 @@ install_flatpak_packages() {
     fi
 }
 
+# Install Snap packages
+install_snap_packages() {
+    # Start and enable snapd and related services
+    sudo systemctl start snapd
+    sudo systemctl enable --now snapd.apparmor
+    sudo systemctl enable --now snapd.service
+    sudo systemctl enable --now bluetooth
+
+    if [ -f "snap_packages.txt" ]; then
+        while IFS= read -r package || [[ -n "$package" ]]; do
+            if ! snap list | grep -q $package; then
+                print_message $YELLOW "Installing Snap package: $package"
+                if ! snap install $package; then
+                    print_message $RED "Error: Failed to install Snap package: $package"
+                    exit 1
+                fi
+            else
+                print_message $GREEN "Snap package already installed: $package"
+            fi
+        done < snap_packages.txt
+        print_message $GREEN "Snap packages installed successfully."
+    else
+        print_message $RED "snap_packages.txt not found. Skipping Snap package installation."
+    fi
+}
+
 # Main script execution
 amd_gpu_check
 broadcom_check
 install_packages
 install_flatpak_packages
+install_snap_packages
