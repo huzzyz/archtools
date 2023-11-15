@@ -27,3 +27,4 @@ qtwebflix-git
 grub-btrfs
 kdeconnect
 sddm-kcm
+snapd
