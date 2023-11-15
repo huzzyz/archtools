@@ -76,16 +76,16 @@ mount "$efi_partition" /mnt/efi
 print_message "Created Btrfs Subvolumes:"
 btrfs subvolume list /mnt
 
-# Generate fstab entries
+# Generate and append fstab entries to /mnt/etc/fstab
 print_message "Generated fstab Entries:"
-generate_fstab_entry "$btrfs_partition" "/" "subvol=@,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
-generate_fstab_entry "$btrfs_partition" "/home" "subvol=@home,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
-generate_fstab_entry "$btrfs_partition" "/var/log" "subvol=@log,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
-generate_fstab_entry "$btrfs_partition" "/var/cache" "subvol=@cache,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
-generate_fstab_entry "$btrfs_partition" "/.snapshots" "subvol=@snapshots,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
-generate_fstab_entry "$btrfs_partition" "/var/lib/libvirt/images" "subvol=@libvirt-images,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
-generate_fstab_entry "$efi_partition" "/efi" "vfat defaults,umask=0077"
+generate_fstab_entry "$btrfs_partition" "/" "subvol=@,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> /mnt/etc/fstab
+generate_fstab_entry "$btrfs_partition" "/home" "subvol=@home,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> /mnt/etc/fstab
+generate_fstab_entry "$btrfs_partition" "/var/log" "subvol=@log,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> /mnt/etc/fstab
+generate_fstab_entry "$btrfs_partition" "/var/cache" "subvol=@cache,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> /mnt/etc/fstab
+generate_fstab_entry "$btrfs_partition" "/.snapshots" "subvol=@snapshots,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> /mnt/etc/fstab
+generate_fstab_entry "$btrfs_partition" "/var/lib/libvirt/images" "subvol=@libvirt-images,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> /mnt/etc/fstab
+generate_fstab_entry "$efi_partition" "/efi" "vfat defaults,umask=0077" >> /mnt/etc/fstab
 
-print_message "Remember to manually update /etc/fstab with the above entries."
+print_message "Entries added to /mnt/etc/fstab."
 echo "Press Enter to exit."
 read
