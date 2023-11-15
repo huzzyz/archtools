@@ -28,3 +28,6 @@ grub-btrfs
 kdeconnect
 sddm-kcm
 snapd
+snapper
+snap-pac
+grub-btrfs
