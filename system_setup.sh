@@ -9,6 +9,7 @@ print_message() {
 read -p "Enter your locale [default: en_US.UTF-8]: " locale
 locale=${locale:-en_US.UTF-8}
 echo "LANG=$locale" | sudo tee /etc/locale.conf
+echo en_US.UTF-8 UTF-8 >> /etc/locale.gen
 sudo locale-gen
 
 # Set Timezone
