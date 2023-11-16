@@ -35,7 +35,6 @@ create_tmp_fstab_file() {
     generate_fstab_entry "$btrfs_partition" "/home" "subvol=@home,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> "$tmp_file"
     generate_fstab_entry "$btrfs_partition" "/var/log" "subvol=@log,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> "$tmp_file"
     generate_fstab_entry "$btrfs_partition" "/var/cache" "subvol=@cache,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> "$tmp_file"
-    generate_fstab_entry "$btrfs_partition" "/.snapshots" "subvol=@snapshots,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> "$tmp_file"
     generate_fstab_entry "$btrfs_partition" "/var/lib/libvirt/images" "subvol=@libvirt-images,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> "$tmp_file"
     generate_fstab_entry "$efi_partition" "/efi" "vfat defaults,umask=0077" >> "$tmp_file"
 
@@ -80,18 +79,16 @@ btrfs subvolume create /mnt/@
 btrfs subvolume create /mnt/@home
 btrfs subvolume create /mnt/@log
 btrfs subvolume create /mnt/@cache
-btrfs subvolume create /mnt/@snapshots
 btrfs subvolume create /mnt/@libvirt-images
 umount /mnt
 
 # Mount subvolumes and EFI partition
 print_message "Mounting subvolumes and EFI partition..."
 mount -o subvol=@,defaults,noatime,compress=zstd "$btrfs_partition" /mnt
-mkdir -p /mnt/{efi,home,var/log,var/cache,.snapshots,var/lib/libvirt/images}
+mkdir -p /mnt/{efi,home,var/log,var/cache,var/lib/libvirt/images}
 mount -o subvol=@home,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/home
 mount -o subvol=@log,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/log
 mount -o subvol=@cache,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/cache
-mount -o subvol=@snapshots,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/.snapshots
 mount -o subvol=@libvirt-images,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/lib/libvirt/images
 mount "$efi_partition" /mnt/efi
 
