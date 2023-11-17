@@ -43,6 +43,7 @@ create_tmp_fstab_file() {
         generate_fstab_entry "$btrfs_partition" "/home" "btrfs" "subvol=@home,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"
         generate_fstab_entry "$btrfs_partition" "/var/log" "btrfs" "subvol=@log,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"
         generate_fstab_entry "$btrfs_partition" "/var/cache" "btrfs" "subvol=@cache,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"
+        generate_fstab_entry "$btrfs_partition" "/.snapshots" "btrfs" "subvol=@snapshots,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"        
         generate_fstab_entry "$btrfs_partition" "/var/lib/libvirt/images" "btrfs" "subvol=@libvirt-images,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"
         echo "# EFI partition"
         generate_fstab_entry "$efi_partition" "/efi" "vfat" "defaults,umask=0077" "0" "2"
@@ -88,16 +89,18 @@ btrfs subvolume create /mnt/@ || { print_message "Failed to create subvolume @. 
 btrfs subvolume create /mnt/@home || { print_message "Failed to create subvolume @home. Exiting."; exit 1; }
 btrfs subvolume create /mnt/@log || { print_message "Failed to create subvolume @log. Exiting."; exit 1; }
 btrfs subvolume create /mnt/@cache || { print_message "Failed to create subvolume @cache. Exiting."; exit 1; }
+btrfs subvolume create /mnt/@snapshots || { print_message "Failed to create subvolume @snapshots. Exiting."; exit 1; }
 btrfs subvolume create /mnt/@libvirt-images || { print_message "Failed to create subvolume @libvirt-images. Exiting."; exit 1; }
 umount /mnt
 
 # Mount subvolumes and EFI partition
 print_message "Mounting subvolumes and EFI partition..."
 mount -o subvol=@,defaults,noatime,compress=zstd "$btrfs_partition" /mnt || { print_message "Failed to mount subvolume @. Exiting."; exit 1; }
-mkdir -p /mnt/{efi,home,var/log,var/cache,var/lib/libvirt/images}
+mkdir -p /mnt/{efi,home,var/log,var/cache,.snapshots,var/lib/libvirt/images}
 mount -o subvol=@home,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/home || { print_message "Failed to mount subvolume @home. Exiting."; exit 1; }
 mount -o subvol=@log,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/log || { print_message "Failed to mount subvolume @log. Exiting."; exit 1; }
 mount -o subvol=@cache,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/cache || { print_message "Failed to mount subvolume @cache. Exiting."; exit 1; }
+mount -o subvol=@snapshots,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/.snapshots || { print_message "Failed to mount subvolume @snapshots. Exiting."; exit 1; }
 mount -o subvol=@libvirt-images,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/lib/libvirt/images || { print_message "Failed to mount subvolume @libvirt-images. Exiting."; exit 1; }
 mount "$efi_partition" /mnt/efi || { print_message "Failed to mount EFI partition. Exiting."; exit 1; }
 
