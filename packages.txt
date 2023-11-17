@@ -27,3 +27,4 @@ kdeconnect
 sddm-kcm
 snapd
 timeshift-autosnap
+fisher-git
