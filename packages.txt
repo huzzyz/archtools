@@ -9,7 +9,6 @@ pinta
 vdhcoapp-git
 libreoffice-fresh
 flameshot
-corectrl-git
 kitty
 ttf-fira-code
 ttf-meslo-nerd-font-powerlevel10k
