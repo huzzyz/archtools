@@ -9,34 +9,44 @@ print_message() {
 validate_device() {
     local device=$1
     while true; do
-        if [ -b "$device" ]; then
+        if [ -b "$device" ] && ! mount | grep -q "$device"; then
             break
         else
-            echo "Invalid device: $device. Please enter a valid device:"
+            echo "Invalid or in-use device: $device. Please enter a valid device:"
             read -r device
         fi
     done
     echo "$device"  # Return the valid device name
 }
 
-# Function to generate fstab entries
+# Function to generate fstab entries with improved readability
 generate_fstab_entry() {
-    local uuid=$(blkid -s UUID -o value "$1")
+    local device_uuid=$(blkid -s UUID -o value "$1")
     local mount_point="$2"
-    local options="$3"
-    echo "UUID=$uuid $mount_point btrfs $options 0 0"
+    local fs_type="$3"
+    local options="$4"
+    local dump_freq="$5"
+    local pass_num="$6"
+
+    printf "UUID=%-36s %-23s %-7s %-51s %s %s\n" "$device_uuid" "$mount_point" "$fs_type" "$options" "$dump_freq" "$pass_num"
 }
 
 # Function to create a temporary file with fstab entries
 create_tmp_fstab_file() {
     local tmp_file="/tmp/btrfs_fstab_entries.tmp"
     
-    generate_fstab_entry "$btrfs_partition" "/" "subvol=@,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" > "$tmp_file"
-    generate_fstab_entry "$btrfs_partition" "/home" "subvol=@home,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> "$tmp_file"
-    generate_fstab_entry "$btrfs_partition" "/var/log" "subvol=@log,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> "$tmp_file"
-    generate_fstab_entry "$btrfs_partition" "/var/cache" "subvol=@cache,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> "$tmp_file"
-    generate_fstab_entry "$btrfs_partition" "/var/lib/libvirt/images" "subvol=@libvirt-images,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" >> "$tmp_file"
-    generate_fstab_entry "$efi_partition" "/efi" "vfat defaults,umask=0077" >> "$tmp_file"
+    # Adding header for better readability
+    {
+        echo "# /etc/fstab: static file system information."
+        echo "# Btrfs subvolumes"
+        generate_fstab_entry "$btrfs_partition" "/" "btrfs" "subvol=@,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"
+        generate_fstab_entry "$btrfs_partition" "/home" "btrfs" "subvol=@home,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"
+        generate_fstab_entry "$btrfs_partition" "/var/log" "btrfs" "subvol=@log,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"
+        generate_fstab_entry "$btrfs_partition" "/var/cache" "btrfs" "subvol=@cache,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"
+        generate_fstab_entry "$btrfs_partition" "/var/lib/libvirt/images" "btrfs" "subvol=@libvirt-images,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2" "0" "0"
+        echo "# EFI partition"
+        generate_fstab_entry "$efi_partition" "/efi" "vfat" "defaults,umask=0077" "0" "2"
+    } > "$tmp_file"
 
     echo "$tmp_file"
 }
@@ -49,7 +59,7 @@ if [ -f "/tmp/btrfs_layout_done" ]; then
     exit 0
 fi
 
-print_message "WARNING: This script assumes you have created the partitions and formatted them on your own. This script will only create a btrfs layout and may lead to data loss."
+print_message "WARNING: This script assumes that the partitions are already formatted."
 echo "Please ensure you have backups before proceeding."
 read -p "Press Enter to continue or Ctrl+C to abort."
 
@@ -65,32 +75,31 @@ echo "Please enter the Btrfs partition (e.g., /dev/sda2):"
 read -r btrfs_partition
 btrfs_partition=$(validate_device "$btrfs_partition")
 
-# Format partitions
-echo "Formatting the EFI partition ($efi_partition)..."
-mkfs.fat -F32 "$efi_partition"
-
-echo "Formatting the Btrfs partition ($btrfs_partition)..."
-mkfs.btrfs "$btrfs_partition"
-
 # Mount the Btrfs partition and create subvolumes
-mount "$btrfs_partition" /mnt
+if ! mount | grep -q "/mnt"; then
+    mount "$btrfs_partition" /mnt
+else
+    print_message "Error: /mnt is already in use. Exiting."
+    exit 1
+fi
+
 print_message "Creating Btrfs subvolumes..."
-btrfs subvolume create /mnt/@
-btrfs subvolume create /mnt/@home
-btrfs subvolume create /mnt/@log
-btrfs subvolume create /mnt/@cache
-btrfs subvolume create /mnt/@libvirt-images
+btrfs subvolume create /mnt/@ || { print_message "Failed to create subvolume @. Exiting."; exit 1; }
+btrfs subvolume create /mnt/@home || { print_message "Failed to create subvolume @home. Exiting."; exit 1; }
+btrfs subvolume create /mnt/@log || { print_message "Failed to create subvolume @log. Exiting."; exit 1; }
+btrfs subvolume create /mnt/@cache || { print_message "Failed to create subvolume @cache. Exiting."; exit 1; }
+btrfs subvolume create /mnt/@libvirt-images || { print_message "Failed to create subvolume @libvirt-images. Exiting."; exit 1; }
 umount /mnt
 
 # Mount subvolumes and EFI partition
 print_message "Mounting subvolumes and EFI partition..."
-mount -o subvol=@,defaults,noatime,compress=zstd "$btrfs_partition" /mnt
+mount -o subvol=@,defaults,noatime,compress=zstd "$btrfs_partition" /mnt || { print_message "Failed to mount subvolume @. Exiting."; exit 1; }
 mkdir -p /mnt/{efi,home,var/log,var/cache,var/lib/libvirt/images}
-mount -o subvol=@home,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/home
-mount -o subvol=@log,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/log
-mount -o subvol=@cache,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/cache
-mount -o subvol=@libvirt-images,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/lib/libvirt/images
-mount "$efi_partition" /mnt/efi
+mount -o subvol=@home,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/home || { print_message "Failed to mount subvolume @home. Exiting."; exit 1; }
+mount -o subvol=@log,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/log || { print_message "Failed to mount subvolume @log. Exiting."; exit 1; }
+mount -o subvol=@cache,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/cache || { print_message "Failed to mount subvolume @cache. Exiting."; exit 1; }
+mount -o subvol=@libvirt-images,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/lib/libvirt/images || { print_message "Failed to mount subvolume @libvirt-images. Exiting."; exit 1; }
+mount "$efi_partition" /mnt/efi || { print_message "Failed to mount EFI partition. Exiting."; exit 1; }
 
 # Display the created subvolumes
 print_message "Created Btrfs Subvolumes:"
@@ -99,6 +108,7 @@ btrfs subvolume list /mnt
 # Generate temporary file with fstab entries
 print_message "Generated fstab Entries:"
 tmp_fstab_file=$(create_tmp_fstab_file)
+cat "$tmp_fstab_file"
 
 # Create a token file to indicate that the script has been run
 touch /tmp/btrfs_layout_done
