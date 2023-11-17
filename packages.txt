@@ -28,3 +28,4 @@ grub-btrfs
 kdeconnect
 sddm-kcm
 snapd
+timeshift-auto
