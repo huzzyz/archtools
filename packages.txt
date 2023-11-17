@@ -3,7 +3,6 @@ flatpak
 pfetch
 neofetch
 fastfetch
-autofs
 cifs-utils
 ocs-url
 pinta
@@ -24,7 +23,6 @@ libtiff5
 gwenview
 latte-dock-git
 qtwebflix-git
-grub-btrfs
 kdeconnect
 sddm-kcm
 snapd
