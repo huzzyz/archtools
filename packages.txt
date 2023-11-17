@@ -26,5 +26,7 @@ qtwebflix-git
 kdeconnect
 sddm-kcm
 snapd
-timeshift-autosnap
 fisher-git
+snapper
+snap-pac
+grub-btrfs
