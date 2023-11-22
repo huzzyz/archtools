@@ -58,26 +58,6 @@ install_packages() {
     fi
 }
 
-# Install Flatpak packages
-install_flatpak_packages() {
-    if [ -f "flatpak_packages.txt" ]; then
-        while IFS= read -r package || [[ -n "$package" ]]; do
-            if ! flatpak list | grep -q $package; then
-                print_message $YELLOW "Installing Flatpak package: $package"
-                if ! flatpak install -y $package; then
-                    print_message $RED "Error: Failed to install Flatpak package: $package"
-                    exit 1
-                fi
-            else
-                print_message $GREEN "Flatpak package already installed: $package"
-            fi
-        done < flatpak_packages.txt
-        print_message $GREEN "Flatpak packages installed successfully."
-    else
-        print_message $RED "flatpak_packages.txt not found. Skipping Flatpak package installation."
-    fi
-}
-
 # Install Snap packages
 install_snap_packages() {
     # Start and enable snapd and related services
@@ -88,9 +68,9 @@ install_snap_packages() {
 
     if [ -f "snap_packages.txt" ]; then
         while IFS= read -r package || [[ -n "$package" ]]; do
-            if ! snap list | grep -q $package; then
+            if ! snap list | grep -q "^$package "; then
                 print_message $YELLOW "Installing Snap package: $package"
-                if ! snap install $package; then
+                if ! sudo snap install $package; then
                     print_message $RED "Error: Failed to install Snap package: $package"
                     exit 1
                 fi
@@ -108,5 +88,4 @@ install_snap_packages() {
 amd_gpu_check
 broadcom_check
 install_packages
-install_flatpak_packages
 install_snap_packages
