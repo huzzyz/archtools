@@ -26,6 +26,5 @@ kdeconnect
 sddm-kcm
 snapd
 fisher-git
-snapper
-snap-pac
-grub-btrfs
+nitch
+timeshift-auto
