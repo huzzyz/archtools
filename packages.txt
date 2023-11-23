@@ -33,3 +33,4 @@ normcap
 moka-icon-theme-git
 faba-icon-theme-git  
 papirus-icon-theme-git
+noto-fonts-cjk
