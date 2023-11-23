@@ -16,9 +16,6 @@ kwin-bismuth-bin
 pdf-xchange
 broadcom-wl
 microsoft-edge-stable
-ttf-wps-fonts
-wps-office
-libtiff5
 gwenview
 latte-dock-git
 qtwebflix-git
