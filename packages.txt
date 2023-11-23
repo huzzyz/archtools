@@ -17,7 +17,6 @@ pdf-xchange
 broadcom-wl
 microsoft-edge-stable
 gwenview
-latte-dock-git
 qtwebflix-git
 kdeconnect
 sddm-kcm
