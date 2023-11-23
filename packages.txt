@@ -32,3 +32,4 @@ faba-icon-theme-git
 papirus-icon-theme-git
 noto-fonts-cjk
 bibata-cursor-theme
+rofi
