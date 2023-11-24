@@ -37,3 +37,4 @@ snapper-support
 btrfs-assistant
 grub-btrfs
 lact
+catppuccin-konsole-theme-git
