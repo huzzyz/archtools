@@ -1,5 +1,4 @@
 vlc
-flatpak
 pfetch
 neofetch
 fastfetch
