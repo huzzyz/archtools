@@ -20,8 +20,9 @@ sddm-kcm
 spand
 fisher-git
 nitch
+onlyoffice-bin
 #timeshift-autosnap
-freeoffice
+#freeoffice
 normcap
 moka-icon-theme-git
 faba-icon-theme-git  
