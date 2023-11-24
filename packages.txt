@@ -6,11 +6,9 @@ cifs-utils
 ocs-url
 pinta
 vdhcoapp-git
-libreoffice-fresh
 flameshot
 kitty
 ttf-fira-code
-ttf-meslo-nerd-font-powerlevel10k
 kwin-bismuth-bin
 pdf-xchange
 broadcom-wl
@@ -19,7 +17,7 @@ gwenview
 qtwebflix-git
 kdeconnect
 sddm-kcm
-snapd
+spand
 fisher-git
 nitch
 #timeshift-autosnap
@@ -32,3 +30,6 @@ noto-fonts-cjk
 bibata-cursor-theme
 rofi
 #vdu_controls
+snapper-support
+btrfs-assistant
+grub-btrfs
