@@ -34,3 +34,4 @@ rofi
 snapper-support
 btrfs-assistant
 grub-btrfs
+lact
