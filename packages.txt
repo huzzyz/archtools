@@ -9,6 +9,7 @@ vdhcoapp-git
 flameshot
 kitty
 ttf-fira-code
+ttf-meslo-nerd-font-powerlevel10k
 kwin-bismuth-bin
 pdf-xchange
 broadcom-wl
