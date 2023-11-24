@@ -8,6 +8,7 @@ pinta
 vdhcoapp-git
 flameshot
 kitty
+konsole
 ttf-fira-code
 ttf-meslo-nerd-font-powerlevel10k
 kwin-bismuth-bin
