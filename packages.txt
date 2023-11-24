@@ -23,7 +23,7 @@ sddm-kcm
 snapd
 fisher-git
 nitch
-timeshift-autosnap
+#timeshift-autosnap
 freeoffice
 normcap
 moka-icon-theme-git
