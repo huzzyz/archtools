@@ -32,3 +32,4 @@ papirus-icon-theme-git
 noto-fonts-cjk
 bibata-cursor-theme
 rofi
+#vdu_controls
