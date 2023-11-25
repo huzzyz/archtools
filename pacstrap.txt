@@ -1,2 +1,2 @@
 base base-devel intel-ucode linux linux-firmware git btrfs-progs grub efibootmgr grub-btrfs inotify-tools nano networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack reflector sudo duf fish
-#pacstrap -K /mnt $(< packages.txt)
+#pacstrap -K /mnt $(< pacstrap.txt)
