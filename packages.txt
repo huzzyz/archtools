@@ -37,3 +37,4 @@ btrfs-assistant
 grub-btrfs
 lact
 catppuccin-konsole-theme-git
+qt6-wayland 
