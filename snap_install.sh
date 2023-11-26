@@ -13,6 +13,13 @@ print_message() {
     printf "\n${COLOR}${TEXT}${NC}\n"
 }
 
+# Start and enable snapd and related services
+print_message $YELLOW "Ensuring snapd services are started and enabled..."
+sudo systemctl start snapd
+sudo systemctl enable --now snapd.apparmor
+sudo systemctl enable --now snapd.service
+print_message $GREEN "snapd services have been started and enabled successfully."
+
 # Check if the snap_packages.txt file exists
 if [ ! -f "snap_packages.txt" ]; then
     print_message $RED "Error: snap_packages.txt file not found. Please create the file with a list of Snap packages to install."
@@ -35,13 +42,6 @@ while IFS= read -r package || [[ -n "$package" ]]; do
 done < snap_packages.txt
 
 print_message $GREEN "All specified Snap packages have been installed successfully."
-
-# Start and enable snapd and related services
-print_message $YELLOW "Starting and enabling snapd services..."
-sudo systemctl start snapd
-sudo systemctl enable --now snapd.apparmor
-sudo systemctl enable --now snapd.service
-print_message $GREEN "snapd services have been started and enabled successfully."
 
 # End of script
 print_message $GREEN "Script execution completed."
