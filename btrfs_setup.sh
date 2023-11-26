@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check for root privileges
+if [ "$(id -u)" != "0" ]; then
+    echo "This script must be run as root" >&2
+    exit 1
+fi
+
 # Function to display messages in color
 print_message() {
     echo -e "\033[1;32m$1\033[0m" # Green color for messages
@@ -10,6 +16,7 @@ validate_device() {
     local device=$1
     while true; do
         if [ -b "$device" ] && ! mount | grep -q "$device"; then
+            # Additional check for file system type can be added here if necessary
             break
         else
             echo "Invalid or in-use device: $device. Please enter a valid device:"
@@ -54,12 +61,6 @@ create_tmp_fstab_file() {
 
 # Main script
 
-# Check if the script has been run before
-if [ -f "/tmp/btrfs_layout_done" ]; then
-    print_message "It seems the script has already been run. Exiting."
-    exit 0
-fi
-
 print_message "WARNING: This script assumes that the partitions are already formatted."
 echo "Please ensure you have backups before proceeding."
 read -p "Press Enter to continue or Ctrl+C to abort."
@@ -67,7 +68,6 @@ read -p "Press Enter to continue or Ctrl+C to abort."
 print_message "Current Disk Layout:"
 lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
 
-# Ask for the EFI and Btrfs partitions
 echo "Please enter the EFI partition (e.g., /dev/sda1):"
 read -r efi_partition
 efi_partition=$(validate_device "$efi_partition")
@@ -76,7 +76,6 @@ echo "Please enter the Btrfs partition (e.g., /dev/sda2):"
 read -r btrfs_partition
 btrfs_partition=$(validate_device "$btrfs_partition")
 
-# Mount the Btrfs partition and create subvolumes
 if ! mount | grep -q "/mnt"; then
     mount "$btrfs_partition" /mnt
 else
@@ -91,9 +90,13 @@ btrfs subvolume create /mnt/@log || { print_message "Failed to create subvolume 
 btrfs subvolume create /mnt/@cache || { print_message "Failed to create subvolume @cache. Exiting."; exit 1; }
 btrfs subvolume create /mnt/@snapshots || { print_message "Failed to create subvolume @snapshots. Exiting."; exit 1; }
 btrfs subvolume create /mnt/@libvirt-images || { print_message "Failed to create subvolume @libvirt-images. Exiting."; exit 1; }
-umount /mnt
 
-# Mount subvolumes and EFI partition
+if mountpoint -q /mnt; then
+    umount /mnt
+else
+    print_message "Mount not successful, skipping unmount."
+fi
+
 print_message "Mounting subvolumes and EFI partition..."
 mount -o subvol=@,defaults,noatime,compress=zstd "$btrfs_partition" /mnt || { print_message "Failed to mount subvolume @. Exiting."; exit 1; }
 mkdir -p /mnt/{efi,home,var/log,var/cache,.snapshots,var/lib/libvirt/images}
@@ -104,19 +107,16 @@ mount -o subvol=@snapshots,defaults,noatime,compress=zstd "$btrfs_partition" /mn
 mount -o subvol=@libvirt-images,defaults,noatime,compress=zstd "$btrfs_partition" /mnt/var/lib/libvirt/images || { print_message "Failed to mount subvolume @libvirt-images. Exiting."; exit 1; }
 mount "$efi_partition" /mnt/efi || { print_message "Failed to mount EFI partition. Exiting."; exit 1; }
 
-# Display the created subvolumes
 print_message "Created Btrfs Subvolumes:"
 btrfs subvolume list /mnt
 
-# Generate temporary file with fstab entries
 print_message "Generated fstab Entries:"
 tmp_fstab_file=$(create_tmp_fstab_file)
 cat "$tmp_fstab_file"
 
-# Create a token file to indicate that the script has been run
 touch /tmp/btrfs_layout_done
 
 print_message "Entries added to temporary file: $tmp_fstab_file."
 echo "Run the second script (append_fstab_entries.sh) to append the entries to /mnt/etc/fstab."
 echo "Press Enter to exit."
-read
+read -r </dev/tty
