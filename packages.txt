@@ -11,7 +11,6 @@ konsole
 ttf-fira-code
 ttf-meslo-nerd-font-powerlevel10k
 kwin-bismuth-bin
-pdf-xchange
 broadcom-wl
 microsoft-edge-stable
 gwenview
@@ -21,7 +20,7 @@ sddm-kcm
 snapd
 fisher-git
 nitch
-#rofi
+rofi
 onlyoffice-bin
 #timeshift-autosnap
 #freeoffice
@@ -37,4 +36,4 @@ btrfs-assistant
 grub-btrfs
 lact
 catppuccin-konsole-theme-git
-qt6-wayland 
+qt6-wayland
