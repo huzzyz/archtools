@@ -18,7 +18,7 @@ gwenview
 qtwebflix-git
 kdeconnect
 sddm-kcm
-spand
+snapd
 fisher-git
 nitch
 #rofi
