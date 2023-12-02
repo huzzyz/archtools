@@ -50,3 +50,4 @@ vim-dracula-git
 snapper-support
 btrfs-assistant
 ttf-dejavu-sans-code
+polybar
