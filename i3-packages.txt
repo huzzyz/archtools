@@ -21,13 +21,11 @@ i3blocks
 i3lock
 i3status
 jq
-lightdm
-lightdm-slick-greeter
+#lightdm
+#lightdm-slick-greeter
 lxappearance-gtk3
-mpv
 network-manager-applet
 numlockx
-playerctl
 polkit-gnome
 rofi
 scrot
