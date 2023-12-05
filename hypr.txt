@@ -1,0 +1,53 @@
+#
+#      _             _       _                      _                 _
+#     / \   _ __ ___| |__   | |__  _   _ _ __  _ __| | __ _ _ __   __| |
+#    / _ \ | '__/ __| '_ \  | '_ \| | | | '_ \| '__| |/ _` | '_ \ / _` |
+#   / ___ \| | | (__| | | | | | | | |_| | |_) | |  | | (_| | | | | (_| |
+#  /_/   \_\_|  \___|_| |_| |_| |_|\__, | .__/|_|  |_|\__,_|_| |_|\__,_|
+#                                  |___/|_|
+#                    _                           _ _     _
+#   _ __   __ _  ___| | ____ _  __ _  ___  ___  | (_)___| |_
+#  | '_ \ / _` |/ __| |/ / _` |/ _` |/ _ \/ __| | | / __| __|
+#  | |_) | (_| | (__|   < (_| | (_| |  __/\__ \ | | \__ \ |_
+#  | .__/ \__,_|\___|_|\_\__,_|\__, |\___||___/ |_|_|___/\__|
+#  |_|                         |___/
+#
+# Rename to packages.txt and run apps.sh
+pipewire
+pipewire-alsa
+pipewire-audio
+pipewire-jack
+pipewire-pulse
+gst-plugin-pipewire
+wireplumber
+networkmanager
+network-manager-applet
+bluez
+bluez-utils
+blueman
+qt5-wayland
+qt6-wayland
+qt5-quickcontrols
+qt5-quickcontrols2
+qt5-graphicaleffects
+hyprland-git
+dunst
+rofi-lbonn-wayland-git
+rofi-greenclip
+waybar
+swww
+polkit-kde-agent
+xdg-desktop-portal-hyprland
+pacman-contrib
+python-pyamdgpuinfo
+parallel
+jq
+imagemagick
+qt5-imageformats
+ffmpegthumbs
+kde-cli-tools
+brightnessctl
+pulsemixer
+nwg-look
+kvantum
+qt5ct
