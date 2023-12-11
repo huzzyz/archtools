@@ -5,6 +5,7 @@ bc
 blueberry
 bluedevil
 bluez-utils
+#brightnessctl-git
 #broadcom-wl
 btrfs-assistant
 btrfs-progs
