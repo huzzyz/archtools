@@ -1,4 +1,5 @@
 #acpi
+#auto-cpufreq
 arandr
 bc
 blueberry
