@@ -18,6 +18,7 @@ dunst
 eza
 fastfetch
 feh
+file-roller
 fish
 flameshot
 i3-wm
