@@ -1,5 +1,5 @@
 #!/bin/bash
-# Automated Arch Linux Installation Script with Btrfs, Dynamic Passwords, Partition Listing, Enhanced Pacman Configurations, and Swap Setup
+# Automated Arch Linux Installation Script with Btrfs, Dynamic Passwords, Partition Listing, Enhanced Pacman Configurations, Swap Setup, and Dynamic Hostname
 
 # Function to display messages
 print_message() {
@@ -32,10 +32,11 @@ print_message "Available partitions on the system:"
 lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT
 echo ""
 
-# Ask for user input for EFI and Btrfs partitions
+# Ask for user input for EFI, Btrfs partitions, and hostname
 echo -e "\033[1;34mPlease enter the partitions based on the list above.\033[0m"
 read -p "Enter the EFI partition (e.g., /dev/sda1): " efi_partition
 read -p "Enter the Btrfs partition (e.g., /dev/sda2): " btrfs_partition
+read -p "Enter your desired hostname: " custom_hostname
 echo ""
 
 # Modify pacman.conf before chroot
@@ -74,7 +75,7 @@ echo ""
 
 # Install Base System using Pacstrap
 print_message "Installing base system..."
-pacstrap /mnt base linux linux-firmware intel-ucode btrfs-progs
+pacstrap /mnt base base-devel intel-ucode linux linux-firmware git btrfs-progs grub efibootmgr grub-btrfs inotify-tools vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack sudo duf fish
 echo ""
 
 # Generate fstab
@@ -89,17 +90,52 @@ arch-chroot /mnt /bin/bash <<EOF
 # Modify pacman.conf after chroot
 modify_pacman_conf "/etc/pacman.conf"
 
-# Locale, Timezone, Hostname and Hosts Configuration
-# (Add the configuration commands here)
+# Locale Setting
+print_message "Configuring locale..."
+echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+locale-gen
+echo ""
 
-# Set Root Password and Create a New User
-# (Add the user creation and password setting commands here)
+# Timezone Setting
+print_message "Configuring timezone..."
+ln -sf /usr/share/zoneinfo/Asia/Dubai /etc/localtime
+hwclock --systohc
+echo ""
+
+# Hostname and Hosts Configuration
+print_message "Configuring hostname and hosts..."
+echo "$custom_hostname" > /etc/hostname
+cat <<EOT > /etc/hosts
+127.0.0.1 localhost
+::1 localhost
+127.0.1.1 $custom_hostname.localdomain $custom_hostname
+EOT
+echo ""
+
+# Set Root Password
+print_message "Setting root password..."
+passwd
+echo ""
+
+# Create a New User
+print_message "Creating a new user..."
+read -p "Enter a new username: " newuser
+useradd -m -G wheel -s /bin/bash "\$newuser"
+passwd "\$newuser"
+echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
+echo ""
 
 # Bootloader Installation
-# (Add bootloader installation commands here)
+print_message "Installing and configuring bootloader..."
+grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=Arch
+grub-mkconfig -o /boot/grub/grub.cfg
+echo ""
 
 # Network Configuration
-# (Add NetworkManager enable command here)
+print_message "Enabling NetworkManager..."
+systemctl enable NetworkManager
+echo ""
 
 EOF
 
