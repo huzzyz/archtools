@@ -11,7 +11,7 @@ broadcom-wl
 btrfs-assistant
 btrfs-progs
 cifs-utils
-@@ -16,26 +15,21 @@ dracula-gtk-theme-git
+dracula-gtk-theme-git
 dracula-icons-git
 duf
 dunst
