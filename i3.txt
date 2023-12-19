@@ -39,7 +39,7 @@ linux-firmware
 lxappearance
 masterpdfeditor-free
 microsoft-edge-stable-bin
-@@ -70,7 +64,6 @@ rofi-power-menu-git
+rofi-power-menu-git
 snapper-support
 stalonetray
 starship
@@ -47,8 +47,10 @@ sudo
 thunar
 thunar-archive-plugin
 thunar-volman
-@@ -93,4 +86,3 @@ xorg-server
+xorg-server
 xorg-xbacklight
 xorg-xdpyinfo
 xorg-xinit
 yay
+picom-ftlabs-git 
+polybar-git
