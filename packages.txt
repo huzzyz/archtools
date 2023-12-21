@@ -53,7 +53,7 @@ pipewire-jack
 pipewire-pulse
 plex-mpv-shim
 polkit-gnome
-polybar
+polybar-git
 pulsemixer
 python-pip
 pywal-git
