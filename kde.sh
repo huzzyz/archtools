@@ -5,6 +5,7 @@ packages=(
     "kate"
     "dolphin"
     "sddm"
+    "plasma-meta"
     "ark"
     "plasma-desktop"
 )
