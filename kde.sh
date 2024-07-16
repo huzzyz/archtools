@@ -2,13 +2,11 @@
 
 # Define the list of packages to install
 packages=(
-    "plasma-meta"
-    "kitty"
     "kate"
     "dolphin"
+    "sddm"
     "ark"
-    "plasma-wayland-session"
-    "egl-wayland"
+    "plasma-desktop"
 )
 
 # Update the system and install packages
