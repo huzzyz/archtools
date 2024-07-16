@@ -12,8 +12,8 @@ cifs-utils
 #cmatrix
 dex
 #dmenu
-dracula-gtk-theme-git
-dracula-icons-git
+dracula-gtk-theme
+dracula-icons
 duf
 dunst
 eza
@@ -41,7 +41,7 @@ nitch
 normcap
 numlockx
 onlyoffice-bin
-papirus-icon-theme-git
+papirus-icon-theme
 pavucontrol-gtk2
 pfetch
 #picom-ftlabs-git
@@ -75,7 +75,7 @@ ttf-font-awesome
 ttf-jetbrains-mono-nerd
 ttf-meslo-nerd-font-powerlevel10k
 #tumbler
-vdhcoapp-git
+vdhcoapp
 #vdu_controls
 vim
 vlc
