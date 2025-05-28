@@ -1,5 +1,5 @@
 #!/bin/bash
-# tailscale-up.sh — Installs Tailscale and brings it up with a key, after confirmation
+# tailscale-up.sh — Installs Tailscale with confirmation
 
 set -euo pipefail
 
